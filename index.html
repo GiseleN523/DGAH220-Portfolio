@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Creative Coding Portfolio</title>
+        <script src="p5.min.js"></script>
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+
+            let projects;
+            let texts;
+
+            // create canvas, and projects and text particles
+            function setup() {
+                createCanvas(windowWidth, windowHeight);
+                let projectW = 380;
+                let projectH = 190;
+                console.log(projectW + " " + projectH)
+                projects = [new Project("InteractiveFiction.png", projectW, projectH, "https://giselen523.github.io/InteractiveFiction/"),
+                    new Project("RecipeGenerator.png", projectW, projectH, "https://giselen523.github.io/RecipeTextGenerator/"),
+                    new Project("FrenchVocab.png", projectW, projectH, "https://giselen523.github.io/FrenchVocabClickerGame/"),
+                    new Project("FingerDodger.png", projectW, projectH, "https://giselen523.github.io/FingerDodgerGame/")
+                ];
+                texts = [new Text("Gisele Nelson"), 
+                    new Text("Portfolio"), 
+                    new Text("Winter 2025"),
+                    new Text("Creative Coding and Generative AI"),
+                    new Text("Carleton College"),
+                    new Text("DGAH 220")
+                ];
+            }
+
+            // resize canvas if the window is resized (adjusts height and width variables automatically)
+            function windowResized() {
+                resizeCanvas(windowWidth, windowHeight);
+            }
+
+            // draw background, projects, and text
+            function draw() {
+                background("#ffeeee");
+                projects.forEach((p) => p.show());
+                texts.forEach((t) => t.show());
+            }
+
+            // Particle
+            class Particle {
+                // initialize width, height, x and y directions (1 or -1), speed (between .4 and 1), and red/green/blue values
+                constructor() {
+                    this.w = 0;
+                    this.h = 0;
+                    this.xDirection = Math.random() < 0.5 ? 1 : -1;
+                    this.yDirection = Math.random() < 0.5 ? 1 : -1;
+                    this.speed = (Math.random()*0.6)+0.4;
+                    this.r = Math.random()*255;
+                    this.g = Math.random()*255;
+                    this.b = Math.random()*255;
+                }
+                // increase x and y position
+                // if particle has collided with a wall: bounce off it by reversing that direction, and randomly pick new speed/color
+                moveAndCheckCollision() {
+                    let collision = false;
+                    this.x += this.xDirection * this.speed;
+                    this.y += this.yDirection * this.speed;
+                    if((this.x+this.w) >= width || this.x <= 0) {
+                        this.xDirection *= -1;
+                        collision = true;
+                    }
+                    if((this.y+this.h) >= height || this.y <= 0) {
+                        this.yDirection *= -1;
+                        collision = true;
+                    }
+                    if(collision) {
+                        this.speed = (Math.random()*0.6)+0.4;
+                        this.x += this.xDirection;
+                        this.y += this.yDirection;
+                        this.r = Math.random()*255;
+                        this.g = Math.random()*255;
+                        this.b = Math.random()*255;
+                    }
+                }
+            }
+
+            // Particle Text
+            class Text extends Particle {
+                // set text to display, text size, width, height, x, and y
+                constructor(txt) {
+                    super();
+                    this.text = txt;
+                    this.size = (Math.random()*30)+20;
+                    textSize(this.size);
+                    textAlign(LEFT, TOP);
+                    this.w = textWidth(this.text);
+                    this.h = this.size;
+                    this.x = Math.random()*(width-this.w);
+                    this.y = Math.random()*(height-this.h);
+                }
+                // move as normal Particle; also draw text
+                show() {
+                    this.moveAndCheckCollision();
+                    textSize(this.size);
+                    stroke(this.r, this.g, this.b);
+                    fill(this.r, this.g, this.b);
+                    text(this.text, this.x, this.y);
+                }
+            }
+
+            // Particle Project
+            class Project extends Particle {
+                // set <a> link to display with image tag inside, as well as width, height, x, and y
+                constructor(imageSrc, w, h, link) {
+                    super();
+                    this.a = createA(link, "<img src='" + imageSrc + "' width='" + w + "' height='" + h + "'>", "_blank");
+                    this.w = w;
+                    this.h = h;
+                    this.x = Math.random()*(width-this.w);
+                    this.y = Math.random()*(height-this.h);
+                }
+
+                // draw at x and y position; if user is hovering over the project, change the cursor; if not, move as normal Particle
+                show() {
+                    this.a.position(this.x, this.y);
+                    if(mouseX >= this.x && mouseX <= (this.x + this.w) && mouseY >= this.y && mouseY <= (this.y + this.h)) { // hovering
+                        cursor("pointer");
+                        fill(255, 255, 0);
+                        stroke(255, 255, 0);
+                        rect(this.x-5, this.y-5, this.w+10, this.h+10);
+                    }
+                    else {
+                        cursor("default");
+                        this.moveAndCheckCollision();
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
